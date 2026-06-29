@@ -27,7 +27,10 @@ adminRouter.patch("/users/:userId/premium", async (req, res) => {
   const parsed = z.object({ grant: z.boolean() }).safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const premiumUntil = parsed.data.grant ? new Date(Date.now() + 1000 * 60 * 60 * 24 * 365) : null;
-  const user = await prisma.user.update({ where: { id: req.params.userId }, data: { premiumUntil } });
+  const user = await prisma.user.update({
+    where: { id: req.params.userId },
+    data: { premiumUntil, activePlan: parsed.data.grant ? "PREMIUM" : "FREE" }
+  });
   res.json(user);
 });
 

@@ -1,7 +1,7 @@
 import { KeyRound, ShieldCheck, UserMinus } from "lucide-react";
 import { SectionCard } from "../components/SectionCard";
 import { StatGrid } from "../components/StatGrid";
-import { usageMetrics } from "../data/mockData";
+import { adminMetrics } from "../data/mockData";
 
 const users = [
   { name: "Aarav Sharma", email: "aarav@example.com", plan: "Premium", usage: 84 },
@@ -12,8 +12,11 @@ const users = [
 export function AdminPanel() {
   return (
     <div className="page-grid">
-      <SectionCard title="Admin panel" description="Real-time operational data should come from API usage and user tables.">
-        <StatGrid stats={usageMetrics} />
+      <SectionCard
+        title="Master admin panel"
+        description="Only admin role can access this. Master admin email: charanjaydeep712@gmail.com."
+      >
+        <StatGrid stats={adminMetrics} />
         <div className="table-wrap">
           <table>
             <thead>

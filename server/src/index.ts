@@ -1,4 +1,5 @@
 import cors from "cors";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import express from "express";
 import helmet from "helmet";
@@ -37,6 +38,25 @@ app.use("/api/thesis", thesisRouter);
 app.use("/api/tools", toolsRouter);
 app.use("/api/admin", adminRouter);
 
+async function bootstrapMasterAdmin() {
+  const email = process.env.MASTER_ADMIN_EMAIL;
+  const password = process.env.MASTER_ADMIN_PASSWORD;
+  if (!email || !password) return;
+  const passwordHash = await bcrypt.hash(password, 12);
+  await prisma.user.upsert({
+    where: { email },
+    update: { role: "ADMIN", activePlan: "PREMIUM" },
+    create: {
+      email,
+      name: "Master Admin",
+      role: "ADMIN",
+      activePlan: "PREMIUM",
+      premiumUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10),
+      passwordHash
+    }
+  });
+}
+
 io.on("connection", async (socket) => {
   await prisma.usageEvent.create({ data: { type: "LIVE_SESSION", metadata: { socketId: socket.id } } });
   io.emit("presence:update", { activeSockets: io.engine.clientsCount });
@@ -57,6 +77,13 @@ io.on("connection", async (socket) => {
 });
 
 const port = Number(process.env.PORT || 4000);
-server.listen(port, () => {
-  console.log(`ThesisMate API running on http://localhost:${port}`);
-});
+bootstrapMasterAdmin()
+  .then(() => {
+    server.listen(port, () => {
+      console.log(`ThesisMate API running on http://localhost:${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Failed to bootstrap server", error);
+    process.exit(1);
+  });

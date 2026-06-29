@@ -4,7 +4,7 @@ import { plans } from "../data/mockData";
 
 export function PricingPage() {
   return (
-    <SectionCard title="Pricing" description="Clear plan separation with Premium unlocking editor, builder, and exports.">
+    <SectionCard title="Plans" description="Free users only get 2 monthly checks. Paper writing needs a paid plan.">
       <div className="pricing-grid">
         {plans.map((plan) => (
           <article className={`price-card ${plan.featured ? "featured" : ""}`} key={plan.name}>
@@ -13,7 +13,9 @@ export function PricingPage() {
             {plan.features.map((feature) => (
               <p key={feature}><Check size={16} /> {feature}</p>
             ))}
-            <button className={plan.featured ? "primary-action" : "secondary-action"}>Choose plan</button>
+            <button className={plan.featured ? "primary-action" : "secondary-action"}>
+              {plan.name === "Free" ? "Start free" : "Choose plan"}
+            </button>
           </article>
         ))}
       </div>

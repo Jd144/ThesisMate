@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAuth } from "../middleware.js";
+import { prisma } from "../db.js";
+import { AuthRequest, requireAuth } from "../middleware.js";
 import { generateChapterOutlines, generateSectionDraft, generateStructure } from "../services/thesisService.js";
 
 export const thesisRouter = Router();
@@ -14,7 +15,17 @@ const thesisSchema = z.object({
   sampleFileName: z.string().optional()
 });
 
-thesisRouter.post("/structure", requireAuth, (req, res) => {
+async function requirePaperPlan(req: AuthRequest, res: { status: (code: number) => { json: (body: unknown) => void } }) {
+  const user = await prisma.user.findUnique({ where: { id: req.user!.id }, select: { activePlan: true } });
+  if (user?.activePlan === "FREE" || user?.activePlan === "SIMILARITY_CHECK") {
+    res.status(402).json({ error: "Paper writing requires AI Tool, Combo, or Premium plan." });
+    return false;
+  }
+  return true;
+}
+
+thesisRouter.post("/structure", requireAuth, async (req: AuthRequest, res) => {
+  if (!(await requirePaperPlan(req, res))) return;
   const parsed = thesisSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   res.json({
@@ -26,13 +37,15 @@ thesisRouter.post("/structure", requireAuth, (req, res) => {
   });
 });
 
-thesisRouter.post("/outlines", requireAuth, (req, res) => {
+thesisRouter.post("/outlines", requireAuth, async (req: AuthRequest, res) => {
+  if (!(await requirePaperPlan(req, res))) return;
   const parsed = thesisSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   res.json({ outlines: generateChapterOutlines(parsed.data) });
 });
 
-thesisRouter.post("/draft", requireAuth, (req, res) => {
+thesisRouter.post("/draft", requireAuth, async (req: AuthRequest, res) => {
+  if (!(await requirePaperPlan(req, res))) return;
   const parsed = thesisSchema.extend({ chapterTitle: z.string() }).safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   res.json({ draft: generateSectionDraft(parsed.data, parsed.data.chapterTitle) });

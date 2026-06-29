@@ -5,6 +5,7 @@ import { AuthRequest, requireAuth } from "../middleware.js";
 export const billingRouter = Router();
 
 export const planCatalog = [
+  { key: "FREE", name: "Free", amount: 0, monthlyChecks: 2, unlocks: ["2 similarity/spell checks per month"] },
   { key: "AI_TOOL", name: "AI Tool", amount: 250, unlocks: ["AI sidebar tools"] },
   { key: "SIMILARITY_CHECK", name: "Similarity Check", amount: 250, unlocks: ["Similarity checker"] },
   { key: "COMBO", name: "Combo", amount: 399, unlocks: ["AI tools", "Similarity checker", "Project saving"] },
@@ -21,11 +22,12 @@ billingRouter.post("/subscribe/:plan", requireAuth, async (req: AuthRequest, res
   const history = await prisma.planHistory.create({
     data: { plan: plan.key, amount: plan.amount, userId: req.user!.id }
   });
-  if (plan.key === "PREMIUM") {
-    await prisma.user.update({
-      where: { id: req.user!.id },
-      data: { premiumUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365) }
-    });
-  }
+  await prisma.user.update({
+    where: { id: req.user!.id },
+    data: {
+      activePlan: plan.key,
+      premiumUntil: plan.key === "PREMIUM" ? new Date(Date.now() + 1000 * 60 * 60 * 24 * 365) : undefined
+    }
+  });
   res.status(201).json(history);
 });

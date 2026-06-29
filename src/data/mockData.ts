@@ -1,12 +1,29 @@
 export const plans = [
-  { name: "AI Tool", price: "₹250", features: ["Rewrite and expand tools", "Limited editor access", "Usage history"] },
-  { name: "Similarity Check", price: "₹250", features: ["Line-by-line flags", "Rewrite suggestions", "Citation prompts"] },
-  { name: "Combo", price: "₹399", features: ["AI tools", "Similarity checker", "Project saving"] },
+  {
+    name: "Free",
+    price: "₹0",
+    features: ["2 checks per month", "Similarity check", "Spell check only", "Paper writing locked"]
+  },
+  {
+    name: "AI Tool",
+    price: "₹250",
+    features: ["Prompt-based editing", "Rewrite and expand", "Tone improvement", "No full paper export"]
+  },
+  {
+    name: "Similarity Check",
+    price: "₹250",
+    features: ["More monthly checks", "Line-by-line flags", "Rewrite suggestions", "Citation prompts"]
+  },
+  {
+    name: "Combo",
+    price: "₹399",
+    features: ["AI tools", "Similarity checker", "Project saving", "Basic exports"]
+  },
   {
     name: "Premium",
     price: "₹2500",
     featured: true,
-    features: ["Full smart editor", "Smart Thesis Builder", "PDF/DOCX export", "Version history"]
+    features: ["Full paper builder", "Smart editor", "PDF/DOCX export", "Version history"]
   }
 ];
 
@@ -17,8 +34,15 @@ export const sampleProjects = [
 ];
 
 export const usageMetrics = [
-  { label: "Active users", value: "128" },
-  { label: "AI requests", value: "1,942" },
-  { label: "Documents created", value: "416" },
-  { label: "Live sessions", value: "23" }
+  { label: "Free checks left", value: "2" },
+  { label: "Current plan", value: "Free" },
+  { label: "Projects", value: "0" },
+  { label: "Exports", value: "0" }
+];
+
+export const adminMetrics = [
+  { label: "Active users", value: "Live API" },
+  { label: "AI requests", value: "Usage DB" },
+  { label: "Documents created", value: "Project DB" },
+  { label: "Live sessions", value: "WebSocket" }
 ];

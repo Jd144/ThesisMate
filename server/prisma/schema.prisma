@@ -13,6 +13,7 @@ enum Role {
 }
 
 enum PlanType {
+  FREE
   AI_TOOL
   SIMILARITY_CHECK
   COMBO
@@ -42,6 +43,7 @@ model User {
   googleId        String?       @unique
   role            Role          @default(USER)
   premiumUntil    DateTime?
+  activePlan      PlanType      @default(FREE)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   projects        Project[]

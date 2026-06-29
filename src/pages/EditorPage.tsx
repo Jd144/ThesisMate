@@ -15,8 +15,8 @@ export function EditorPage() {
     <div className="editor-layout">
       <SectionCard
         title="Smart Editor"
-        description="Rich text style workspace with insert tools, autosave status, and export actions."
-        action={<span className="badge success">Auto-saved</span>}
+        description="Paid workspace: edit manually or give prompts for rewrite, format, citation, and section changes."
+        action={<span className="badge success">Premium feature</span>}
       >
         <div className="toolbar">
           {[Bold, Italic, List].map((Icon, index) => (
@@ -33,13 +33,14 @@ export function EditorPage() {
       </SectionCard>
 
       <aside className="ai-sidebar">
-        <h2>AI assistant</h2>
-        <p>Apply changes to selected text or generate a suggestion for review.</p>
+        <h2>Prompt editor</h2>
+        <p>User can type instructions like: make this formal, add citation placeholders, expand methodology, or convert to APA.</p>
         {actions.map((action) => (
           <button className="assistant-action" key={action}>{action}</button>
         ))}
+        <textarea placeholder="Example: Rewrite paragraph 2 in simple academic language and add citation placeholders." />
         <div className="side-note">
-          Citations are suggestions only. Users should verify sources and formatting before submission.
+          Citations and checks are assistance signals. User should verify every source before submission.
         </div>
       </aside>
     </div>

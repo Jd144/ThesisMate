@@ -14,10 +14,10 @@ export function ProfilePage() {
 
       <SectionCard title="Account history">
         <div className="history-list">
-          <p><strong>Current plan:</strong> Premium</p>
-          <p><strong>Last payment:</strong> ₹2500</p>
-          <p><strong>AI usage this month:</strong> 132 requests</p>
-          <p><strong>Documents:</strong> 8 created</p>
+          <p><strong>Current plan:</strong> Free</p>
+          <p><strong>Free checks left:</strong> 2 this month</p>
+          <p><strong>Paper builder:</strong> Locked until paid plan</p>
+          <p><strong>Documents:</strong> 0 created</p>
         </div>
         <button className="danger-action"><Trash2 size={16} /> Delete account</button>
       </SectionCard>

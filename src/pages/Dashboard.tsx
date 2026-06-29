@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, FileDown, History, PenLine, Workflow } from "lucide-react";
+import { ArrowRight, FileDown, History, PenLine, SearchCheck, Workflow } from "lucide-react";
 import { SectionCard } from "../components/SectionCard";
 import { StatGrid } from "../components/StatGrid";
 import { sampleProjects, usageMetrics } from "../data/mockData";
@@ -10,17 +10,17 @@ export function Dashboard() {
       <section className="hero-panel">
         <div>
           <p className="eyebrow">New academic workflow</p>
-          <h2>Build thesis chapters in controlled steps, edit drafts, track versions, and export clean files.</h2>
+          <h2>Your account opens with checks first. Paper writing unlocks after selecting a paid plan.</h2>
           <p>
-            ThesisMate now focuses on structured academic writing. The system guides users from topic to outline to
-            small editable draft chunks, without making unsafe originality claims.
+            Free plan users can run 2 similarity or spell checks per month. Paid users can create papers from title,
+            description, outline choice, format rules, and figure or flowchart instructions.
           </p>
           <div className="button-row">
-            <Link className="primary-action" to="/builder">
-              Start builder <ArrowRight size={16} />
+            <Link className="primary-action" to="/app/similarity">
+              Run free check <ArrowRight size={16} />
             </Link>
-            <Link className="secondary-action" to="/editor">
-              Open editor
+            <Link className="secondary-action" to="/pricing">
+              Choose paid plan
             </Link>
           </div>
         </div>
@@ -30,10 +30,10 @@ export function Dashboard() {
 
       <div className="feature-grid">
         {[
-          { icon: Workflow, title: "Stepwise thesis builder", text: "Structure, chapter outlines, and small section drafts." },
-          { icon: PenLine, title: "Smart editor", text: "Rich editing, AI sidebar actions, tables, figures, and flowchart placeholders." },
-          { icon: History, title: "Project history", text: "Autosave-ready data model with version snapshots." },
-          { icon: FileDown, title: "Export system", text: "Backend routes prepared for PDF, DOCX, Markdown, and HTML exports." }
+          { icon: SearchCheck, title: "Free checks", text: "2 monthly similarity/spell checks before upgrading." },
+          { icon: Workflow, title: "Paid paper builder", text: "Generate outline first, then build the paper section by section." },
+          { icon: PenLine, title: "Prompt editing", text: "User can edit manually or ask AI to rewrite, expand, format, or cite." },
+          { icon: FileDown, title: "Export system", text: "Premium users can download PDF, DOCX, Markdown, and HTML." }
         ].map((item) => {
           const Icon = item.icon;
           return (
@@ -46,7 +46,7 @@ export function Dashboard() {
         })}
       </div>
 
-      <SectionCard title="Recent projects" description="Saved academic workspaces with live status.">
+      <SectionCard title="Recent projects" description="Paid writing projects will appear here after the user creates them.">
         <div className="table-wrap">
           <table>
             <thead>

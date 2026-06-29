@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, Sparkles } from "lucide-react";
+import { AlertTriangle, ChevronDown, SpellCheck, Sparkles } from "lucide-react";
 import { SectionCard } from "../components/SectionCard";
 import { analyzeText } from "../lib/similarity";
 
@@ -15,9 +15,14 @@ export function SimilarityPage() {
   return (
     <div className="page-grid">
       <SectionCard
-        title="Similarity & AI-Likeness Checker"
-        description="Line-by-line explanations with short suggestions. No guaranteed percentage claims."
+        title="Free Similarity & Spell Checker"
+        description="Free plan allows 2 checks per month. Paid plans add more checks and editor actions."
+        action={<span className="badge">2 free checks left</span>}
       >
+        <div className="button-row check-mode-row">
+          <button className="primary-action"><AlertTriangle size={16} /> Similarity check</button>
+          <button className="secondary-action"><SpellCheck size={16} /> Spell check</button>
+        </div>
         <textarea className="checker-input" value={text} onChange={(event) => setText(event.target.value)} />
         <div className="issue-list">
           {issues.length === 0 ? (

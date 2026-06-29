@@ -11,7 +11,7 @@
 ## Billing
 
 - `GET /api/billing/plans` returns plan catalog.
-- `POST /api/billing/subscribe/:plan` records a plan purchase. Supported plan keys: `AI_TOOL`, `SIMILARITY_CHECK`, `COMBO`, `PREMIUM`.
+- `POST /api/billing/subscribe/:plan` records a plan purchase. Supported plan keys: `FREE`, `AI_TOOL`, `SIMILARITY_CHECK`, `COMBO`, `PREMIUM`.
 
 ## Projects
 
@@ -32,6 +32,7 @@ The builder intentionally separates steps so users edit before continuing.
 ## Tools
 
 - `POST /api/tools/similarity` returns line-by-line similarity and AI-likeness explanations.
+- `POST /api/tools/spell-check` returns basic spelling review suggestions and counts against the free monthly limit.
 - `POST /api/tools/ai-action` records AI usage and returns a review suggestion placeholder.
 - `POST /api/tools/export/pdf` downloads PDF.
 - `POST /api/tools/export/docx` downloads DOCX.

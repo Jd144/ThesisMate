@@ -4,6 +4,11 @@ ThesisMate is a professional AI-assisted academic writing workspace for thesis a
 
 ## Features
 
+- Public home page explaining the product before login.
+- Login/sign-up flow before showing the user workspace.
+- Plan-based feature access:
+  - Free: 2 similarity/spell checks per month only.
+  - Paid plans: AI editing, paper builder, project saving, exports depending on plan.
 - Smart Thesis Builder with topic, domain, objective, keywords, optional data file, and optional sample file input.
 - Smart Editor with formatting controls, AI sidebar actions, table/figure/flowchart placeholders, autosave-ready model, and export actions.
 - Project system with chapters, autosave snapshots, and version history.
@@ -14,6 +19,28 @@ ThesisMate is a professional AI-assisted academic writing workspace for thesis a
 - Admin APIs for users, premium grants/revokes, password reset, and real-time metrics.
 - WebSocket live user tracking and API usage tracking.
 - Similarity and AI-likeness checker with expandable line-by-line explanations.
+
+## User Flow
+
+1. User visits the home page and understands the platform.
+2. User logs in or signs up.
+3. User selects a free or paid plan.
+4. Free user can run 2 monthly similarity/spell checks only.
+5. Paid user can create a paper by entering:
+   - paper title
+   - topic description
+   - domain
+   - keywords
+   - required format
+   - whether the user provides outline or ThesisMate creates it
+   - figure/table/flowchart descriptions and placement notes
+6. ThesisMate creates the outline first.
+7. User approves or edits the outline.
+8. ThesisMate creates the paper section by section.
+9. User edits manually or gives prompts to the editor.
+10. User runs checks and exports the final document.
+
+The platform should never promise guaranteed `0% plagiarism`, `0% AI detection`, or bypassing detection systems. It can help reduce similarity risk, improve originality, and explain AI-like patterns.
 
 ## Tech Stack
 
@@ -30,6 +57,15 @@ npm install
 ```
 
 2. Create `.env` from `.env.example` and set `DATABASE_URL` and `JWT_SECRET`.
+
+For the master admin account, set:
+
+```bash
+MASTER_ADMIN_EMAIL="charanjaydeep712@gmail.com"
+MASTER_ADMIN_PASSWORD="your-secure-password"
+```
+
+The password is hashed before storage and should not be hardcoded in source files.
 
 3. Generate Prisma client and run migrations:
 

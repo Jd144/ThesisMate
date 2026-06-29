@@ -1,4 +1,4 @@
-import { Link, NavLink, Route, Routes } from "react-router-dom";
+import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import {
   BarChart3,
   BookOpen,
@@ -17,6 +17,7 @@ import { AdminPanel } from "./pages/AdminPanel";
 import { AuthPage } from "./pages/AuthPage";
 import { Dashboard } from "./pages/Dashboard";
 import { EditorPage } from "./pages/EditorPage";
+import { HomePage } from "./pages/HomePage";
 import { PricingPage } from "./pages/PricingPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { ProjectsPage } from "./pages/ProjectsPage";
@@ -24,28 +25,56 @@ import { SimilarityPage } from "./pages/SimilarityPage";
 import { ThesisBuilderPage } from "./pages/ThesisBuilderPage";
 
 const nav = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/builder", label: "Thesis Builder", icon: BookOpen },
-  { to: "/editor", label: "Smart Editor", icon: FileText },
-  { to: "/projects", label: "Projects", icon: ClipboardCheck },
-  { to: "/similarity", label: "Similarity", icon: BarChart3 },
-  { to: "/pricing", label: "Pricing", icon: CreditCard },
-  { to: "/profile", label: "Account", icon: UserRound },
-  { to: "/admin", label: "Admin", icon: Shield }
+  { to: "/app", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/app/builder", label: "Paper Builder", icon: BookOpen },
+  { to: "/app/editor", label: "Smart Editor", icon: FileText },
+  { to: "/app/projects", label: "Projects", icon: ClipboardCheck },
+  { to: "/app/similarity", label: "Similarity", icon: BarChart3 },
+  { to: "/pricing", label: "Plans", icon: CreditCard },
+  { to: "/app/profile", label: "Account", icon: UserRound },
+  { to: "/app/admin", label: "Master Admin", icon: Shield }
 ];
 
 export default function App() {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const isMarketing = ["/", "/auth", "/pricing"].includes(location.pathname);
+
+  if (isMarketing) {
+    return (
+      <div className="marketing-shell">
+        <header className="marketing-topbar">
+          <Link to="/" className="brand">
+            <span className="brand-mark">TM</span>
+            <span>
+              <strong>ThesisMate</strong>
+              <small>AI academic writing platform</small>
+            </span>
+          </Link>
+          <nav>
+            <Link to="/pricing">Plans</Link>
+            <Link to="/auth">Login</Link>
+            <Link className="primary-action" to="/auth">Sign up</Link>
+          </nav>
+        </header>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+        </Routes>
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell">
       <aside className={`sidebar ${open ? "open" : ""}`}>
         <div className="brand-row">
-          <Link to="/" className="brand" onClick={() => setOpen(false)}>
+          <Link to="/app" className="brand" onClick={() => setOpen(false)}>
             <span className="brand-mark">TM</span>
             <span>
               <strong>ThesisMate</strong>
-              <small>Academic workspace</small>
+              <small>Student workspace</small>
             </span>
           </Link>
           <button className="icon-btn mobile-only" aria-label="Close menu" onClick={() => setOpen(false)}>
@@ -65,7 +94,7 @@ export default function App() {
         </nav>
         <div className="security-note">
           <Lock size={16} />
-          <span>Secure drafts, account controls, and usage tracking are built into the platform.</span>
+          <span>Free plan: 2 checks/month. Paper writing needs a paid plan.</span>
         </div>
       </aside>
 
@@ -75,23 +104,22 @@ export default function App() {
             <Menu size={20} />
           </button>
           <div>
-            <p className="eyebrow">Professional thesis/report assistant</p>
-            <h1>AI-assisted writing with human editing at every step</h1>
+            <p className="eyebrow">Logged in workspace</p>
+            <h1>Plan-based academic writing tools</h1>
           </div>
-          <Link className="primary-action" to="/auth">
-            Login
+          <Link className="primary-action" to="/pricing">
+            Upgrade plan
           </Link>
         </header>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/builder" element={<ThesisBuilderPage />} />
-          <Route path="/editor" element={<EditorPage />} />
-          <Route path="/projects" element={<ProjectsPage />} />
-          <Route path="/similarity" element={<SimilarityPage />} />
+          <Route path="/app" element={<Dashboard />} />
+          <Route path="/app/builder" element={<ThesisBuilderPage />} />
+          <Route path="/app/editor" element={<EditorPage />} />
+          <Route path="/app/projects" element={<ProjectsPage />} />
+          <Route path="/app/similarity" element={<SimilarityPage />} />
           <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/app/profile" element={<ProfilePage />} />
+          <Route path="/app/admin" element={<AdminPanel />} />
         </Routes>
       </main>
     </div>
