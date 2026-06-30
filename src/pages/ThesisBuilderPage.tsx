@@ -322,25 +322,7 @@ function buildFullPaper(input: {
     "This draft is designed to reduce formatting effort and support academic writing. It cannot honestly guarantee 100% plagiarism-free or 100% AI-detection-free status. The user must verify sources, add real citations, review similarity, and complete human editing before submission."
   ];
 
-  const expansion = [
-    `The argument should remain specific to ${input.domain} and avoid broad unsupported claims.`,
-    "Each paragraph should include a clear topic sentence, supporting explanation, and a connection back to the research objective.",
-    "Where evidence is missing, the paper should use a citation placeholder instead of inventing data.",
-    "The user should review wording, add institution-approved references, and confirm formatting before submission."
-  ];
-
-  const words = baseSections.join(" ").split(/\s+/).filter(Boolean).length;
-  const output = [...baseSections];
-  let currentWords = words;
-  let index = 0;
-  while (currentWords < targetWords) {
-    const paragraph = expansion[index % expansion.length];
-    output.splice(Math.max(output.length - 3, 0), 0, paragraph);
-    currentWords += paragraph.split(/\s+/).length;
-    index += 1;
-  }
-
-  return output.join("\n");
+  return completeWithUniqueParagraphs(baseSections, targetWords, input, keywordLine, "report").join("\n");
 }
 
 function buildResearchPaper(input: {
@@ -415,23 +397,134 @@ function buildResearchPaper(input: {
     "This generated manuscript is a formatted draft. It should be checked for similarity, AI-like patterns, citation accuracy, institutional formatting, and factual correctness before submission."
   ];
 
-  const expansion = [
-    `The manuscript should stay focused on ${input.domain} and should avoid adding values that were not provided by the user.`,
-    "The user prompt should guide the writing style, diagram placement, table structure, and depth of explanation.",
-    "For a journal-style paper, every major technical claim should be paired with a source or a real observation.",
-    "Figures and tables should be placed near the first paragraph that discusses them, with clear captions and numbering."
-  ];
+  return completeWithUniqueParagraphs(sections, targetWords, input, keywordLine, "research").join("\n");
+}
 
+function completeWithUniqueParagraphs(
+  sections: string[],
+  targetWords: number,
+  input: {
+    title: string;
+    domain: string;
+    description: string;
+    keywords: string[];
+    customPrompt: string;
+    visualNotes: string;
+  },
+  keywordLine: string,
+  kind: "report" | "research"
+) {
   const output = [...sections];
   let currentWords = output.join(" ").split(/\s+/).filter(Boolean).length;
+  const insertionIndex = findReferenceIndex(output);
+  const paragraphs = createUniqueDevelopmentParagraphs(input, keywordLine, kind);
   let index = 0;
-  while (currentWords < targetWords) {
-    const paragraph = expansion[index % expansion.length];
-    output.splice(Math.max(output.length - 5, 0), 0, paragraph);
+
+  while (currentWords < targetWords && index < paragraphs.length) {
+    const paragraph = paragraphs[index];
+    output.splice(insertionIndex + index, 0, paragraph);
     currentWords += paragraph.split(/\s+/).length;
     index += 1;
   }
-  return output.join("\n");
+
+  return output;
+}
+
+function findReferenceIndex(lines: string[]) {
+  const index = lines.findIndex((line) => /^(9\.\s*)?REFERENCES$/i.test(line.trim()));
+  return index >= 0 ? index : Math.max(lines.length - 2, 0);
+}
+
+function createUniqueDevelopmentParagraphs(
+  input: {
+    title: string;
+    domain: string;
+    description: string;
+    keywords: string[];
+    customPrompt: string;
+    visualNotes: string;
+  },
+  keywordLine: string,
+  kind: "report" | "research"
+) {
+  const keywords = input.keywords.length ? input.keywords : ["academic writing", "research design", "evidence review", "final editing"];
+  const sectionAngles = kind === "research"
+    ? [
+        "Background and rationale",
+        "Literature gap",
+        "Study design",
+        "Material or data selection",
+        "Evaluation approach",
+        "Result interpretation",
+        "Comparative discussion",
+        "Limitations and validation",
+        "Figure and table placement",
+        "Citation control"
+      ]
+    : [
+        "Problem background",
+        "Conceptual scope",
+        "Review focus",
+        "Objective alignment",
+        "Method planning",
+        "Evidence mapping",
+        "Findings organization",
+        "Discussion depth",
+        "Visual explanation",
+        "Final academic review"
+      ];
+  const evidenceNeeds = [
+    "peer-reviewed citation",
+    "user-provided dataset",
+    "institutional guideline",
+    "survey or interview note",
+    "verified figure caption",
+    "method description",
+    "comparison table",
+    "reference-paper example"
+  ];
+  const writingMoves = [
+    "defines the central term before expanding the argument",
+    "connects the paragraph back to the stated objective",
+    "separates observation from interpretation",
+    "marks claims that need citation instead of presenting them as final facts",
+    "uses domain-specific wording without adding unsupported numbers",
+    "keeps the tone formal while preserving readability",
+    "places visual material close to the related explanation",
+    "adds a transition that helps the reader follow the section"
+  ];
+  const contextSentences = [
+    input.description,
+    `The section should explain why ${keywordLine} matters for the selected topic.`,
+    `The paragraph should move from general academic context toward the specific requirement of ${input.domain}.`,
+    "The writing should avoid repeating the same sentence pattern and should introduce a new point in each paragraph.",
+    "The draft should separate confirmed information, user-provided material, and citation placeholders.",
+    "The section should make clear what evidence is still required before final submission.",
+    "The explanation should be useful for a reader who has not seen the planning notes.",
+    "The paragraph should support the next figure, table, method note, or discussion point."
+  ];
+
+  const paragraphs: string[] = [];
+  for (let round = 0; round < 9; round += 1) {
+    sectionAngles.forEach((angle, angleIndex) => {
+      const keyword = keywords[(round + angleIndex) % keywords.length];
+      const evidence = evidenceNeeds[(round + angleIndex) % evidenceNeeds.length];
+      const move = writingMoves[(round * 2 + angleIndex) % writingMoves.length];
+      const context = contextSentences[(round + angleIndex) % contextSentences.length];
+      const promptNote = round % 6 === 0 && angleIndex < 2
+        ? `The user instruction says: ${input.customPrompt}`
+        : `The paragraph should remain aligned with the requested topic and format.`;
+      const visualNote = round % 5 === 0 && angleIndex < 2
+        ? `Visual planning note: ${input.visualNotes}`
+        : "Any figure, table, or flowchart should be numbered and explained in the nearby text.";
+
+      paragraphs.push(
+        `${angle}: In relation to ${input.title}, the discussion of ${keyword} should be developed with a clear link to ${input.domain}. ${context} This part should use a ${evidence} where available, and it ${move}. ${promptNote} ${visualNote}`
+      );
+    });
+  }
+
+  return paragraphs;
 }
 
 function getTargetWords(format: string) {
