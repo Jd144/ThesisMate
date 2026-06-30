@@ -1,5 +1,20 @@
 import { Bold, FileDown, Image, Italic, List, Table2, Workflow } from "lucide-react";
-import { Document, Packer, Paragraph } from "docx";
+import {
+  AlignmentType,
+  BorderStyle,
+  Document,
+  Footer,
+  HeadingLevel,
+  Packer,
+  PageBreak,
+  PageNumber,
+  Paragraph,
+  Table,
+  TableCell,
+  TableRow,
+  TextRun,
+  WidthType
+} from "docx";
 import { useState } from "react";
 import { SectionCard } from "../components/SectionCard";
 import { useAppState } from "../lib/appState";
@@ -26,17 +41,11 @@ export function EditorPage() {
     const filename = slugify(title);
 
     if (format === "docx") {
-      const doc = new Document({
-        sections: [
-          {
-            children: content.split(/\r?\n/).map((line) => new Paragraph(line || " "))
-          }
-        ]
-      });
+      const doc = createFormattedReportDocx(title, content);
       const blob = await Packer.toBlob(doc);
       downloadBlob(blob, `${filename}.docx`);
       recordExport();
-      setMessage("DOCX downloaded.");
+      setMessage("Formatted DOCX downloaded.");
       return;
     }
 
@@ -121,6 +130,208 @@ function escapeHtml(value: string) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function createFormattedReportDocx(title: string, content: string) {
+  return new Document({
+    styles: {
+      paragraphStyles: [
+        {
+          id: "ReportBody",
+          name: "Report Body",
+          basedOn: "Normal",
+          next: "ReportBody",
+          run: { font: "Times New Roman", size: 24 },
+          paragraph: {
+            alignment: AlignmentType.JUSTIFIED,
+            spacing: { line: 360, before: 0, after: 180 }
+          }
+        },
+        {
+          id: "FrontMatterHeading",
+          name: "Front Matter Heading",
+          basedOn: "Normal",
+          next: "ReportBody",
+          run: { font: "Times New Roman", size: 28, bold: true },
+          paragraph: {
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 240, after: 240 }
+          }
+        }
+      ]
+    },
+    sections: [
+      {
+        properties: {
+          page: {
+            margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+          }
+        },
+        footers: {
+          default: new Footer({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.RIGHT,
+                children: [
+                  new TextRun({ text: "Page ", size: 18, font: "Times New Roman" }),
+                  new TextRun({ children: [PageNumber.CURRENT], size: 18, font: "Times New Roman" }),
+                  new TextRun({ text: " of ", size: 18, font: "Times New Roman" }),
+                  new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 18, font: "Times New Roman" })
+                ]
+              })
+            ]
+          })
+        },
+        children: buildReportDocxChildren(title, content)
+      }
+    ]
+  });
+}
+
+function buildReportDocxChildren(title: string, content: string) {
+  const lines = content.split(/\r?\n/);
+  const children: (Paragraph | Table)[] = [];
+  let tableBuffer: string[] = [];
+
+  const flushTable = () => {
+    if (!tableBuffer.length) return;
+    children.push(makeReportTable(tableBuffer));
+    tableBuffer = [];
+  };
+
+  lines.forEach((rawLine, index) => {
+    const line = rawLine.trim();
+    const nextLine = lines[index + 1]?.trim() || "";
+
+    if (!line) {
+      flushTable();
+      children.push(new Paragraph({ text: "", spacing: { after: 120 } }));
+      return;
+    }
+
+    if (line.includes("|")) {
+      tableBuffer.push(line);
+      if (!nextLine.includes("|")) flushTable();
+      return;
+    }
+
+    flushTable();
+
+    if (index === 0 || line === title) {
+      children.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 2200, after: 360 },
+        children: [new TextRun({ text: line, bold: true, size: 36, font: "Times New Roman" })]
+      }));
+      return;
+    }
+
+    if (isPageBreakBefore(line)) {
+      children.push(new Paragraph({ children: [new PageBreak()] }));
+    }
+
+    if (isFrontMatterHeading(line)) {
+      children.push(new Paragraph({
+        style: "FrontMatterHeading",
+        children: [new TextRun({ text: line, bold: true, allCaps: true, font: "Times New Roman" })]
+      }));
+      return;
+    }
+
+    if (/^\d+\.\s+[A-Z]/.test(line)) {
+      children.push(new Paragraph({
+        heading: HeadingLevel.HEADING_1,
+        spacing: { before: 320, after: 180 },
+        children: [new TextRun({ text: line, bold: true, size: 28, font: "Times New Roman" })]
+      }));
+      return;
+    }
+
+    if (/^Figure\s+\d+:/i.test(line) || /^Table\s+\d+:/i.test(line)) {
+      children.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 200, after: 160 },
+        children: [new TextRun({ text: line, bold: true, italics: true, size: 22, font: "Times New Roman" })]
+      }));
+      return;
+    }
+
+    if (/^\d+\.\s/.test(line)) {
+      children.push(new Paragraph({
+        style: "ReportBody",
+        indent: { left: 360, hanging: 260 },
+        children: [new TextRun({ text: line, font: "Times New Roman", size: 24 })]
+      }));
+      return;
+    }
+
+    children.push(new Paragraph({
+      style: "ReportBody",
+      children: [new TextRun({ text: line, font: "Times New Roman", size: 24 })]
+    }));
+  });
+
+  flushTable();
+  return children;
+}
+
+function isFrontMatterHeading(line: string) {
+  return [
+    "CERTIFICATE",
+    "DECLARATION",
+    "ACKNOWLEDGEMENT",
+    "CONTENTS",
+    "ABBREVIATIONS",
+    "LIST OF FIGURES",
+    "LIST OF TABLES",
+    "ABSTRACT",
+    "QUALITY REVIEW NOTE"
+  ].includes(line);
+}
+
+function isPageBreakBefore(line: string) {
+  return [
+    "CERTIFICATE",
+    "DECLARATION",
+    "ACKNOWLEDGEMENT",
+    "CONTENTS",
+    "ABBREVIATIONS",
+    "LIST OF FIGURES",
+    "ABSTRACT",
+    "1. INTRODUCTION",
+    "9. REFERENCES"
+  ].includes(line);
+}
+
+function makeReportTable(lines: string[]) {
+  const rows = lines.map((line, rowIndex) => {
+    const cells = line.split("|").map((cell) => cell.trim());
+    return new TableRow({
+      children: cells.map((cell) => new TableCell({
+        width: { size: Math.floor(9000 / cells.length), type: WidthType.DXA },
+        margins: { top: 120, bottom: 120, left: 120, right: 120 },
+        shading: rowIndex === 0 ? { fill: "EAF3F0" } : undefined,
+        children: [
+          new Paragraph({
+            children: [new TextRun({ text: cell, bold: rowIndex === 0, font: "Times New Roman", size: 22 })]
+          })
+        ]
+      }))
+    });
+  });
+
+  return new Table({
+    width: { size: 9000, type: WidthType.DXA },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: "8FA7A0" },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: "8FA7A0" },
+      left: { style: BorderStyle.SINGLE, size: 1, color: "8FA7A0" },
+      right: { style: BorderStyle.SINGLE, size: 1, color: "8FA7A0" },
+      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "D6E1DE" },
+      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "D6E1DE" }
+    },
+    rows
+  });
 }
 
 function createSimplePdf(title: string, content: string) {
