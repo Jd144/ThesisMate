@@ -555,6 +555,21 @@ select {
   padding: 0;
 }
 
+.form-message,
+.payment-note {
+  display: block;
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.form-message {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fbfcfb;
+}
+
 .stat-grid,
 .feature-grid,
 .pricing-grid,

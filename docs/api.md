@@ -12,6 +12,8 @@
 
 - `GET /api/billing/plans` returns plan catalog.
 - `POST /api/billing/subscribe/:plan` records a plan purchase. Supported plan keys: `FREE`, `AI_TOOL`, `SIMILARITY_CHECK`, `COMBO`, `PREMIUM`.
+- `POST /api/billing/razorpay/order/:plan` creates a Razorpay-ready order response after keys are configured.
+- `POST /api/billing/razorpay/verify` verifies Razorpay signature and activates the selected plan.
 
 ## Projects
 

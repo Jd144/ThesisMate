@@ -2,15 +2,24 @@ import { Link } from "react-router-dom";
 import { ArrowRight, FileDown, History, PenLine, SearchCheck, Workflow } from "lucide-react";
 import { SectionCard } from "../components/SectionCard";
 import { StatGrid } from "../components/StatGrid";
-import { sampleProjects, usageMetrics } from "../data/mockData";
+import { sampleProjects } from "../data/mockData";
+import { planLabel, useAppState } from "../lib/appState";
 
 export function Dashboard() {
+  const { plan, freeChecksLeft, projectsCreated, exportsCreated, user } = useAppState();
+  const usageMetrics = [
+    { label: "Free checks left", value: plan === "FREE" ? String(freeChecksLeft) : "Unlimited" },
+    { label: "Current plan", value: planLabel(plan) },
+    { label: "Projects", value: String(projectsCreated) },
+    { label: "Exports", value: String(exportsCreated) }
+  ];
+
   return (
     <div className="page-grid">
       <section className="hero-panel">
         <div>
-          <p className="eyebrow">New academic workflow</p>
-          <h2>Your account opens with checks first. Paper writing unlocks after selecting a paid plan.</h2>
+          <p className="eyebrow">{user ? `Welcome ${user.name}` : "Demo workspace"}</p>
+          <h2>{plan === "FREE" ? "Free account: checks work now, paper writing is locked." : `${planLabel(plan)} plan active: writing tools are unlocked.`}</h2>
           <p>
             Free plan users can run 2 similarity or spell checks per month. Paid users can create papers from title,
             description, outline choice, format rules, and figure or flowchart instructions.
@@ -31,7 +40,7 @@ export function Dashboard() {
       <div className="feature-grid">
         {[
           { icon: SearchCheck, title: "Free checks", text: "2 monthly similarity/spell checks before upgrading." },
-          { icon: Workflow, title: "Paid paper builder", text: "Generate outline first, then build the paper section by section." },
+          { icon: Workflow, title: "Paid paper builder", text: plan === "FREE" ? "Choose AI Tool, Combo, or Premium to unlock this." : "Unlocked: generate outline first, then section by section." },
           { icon: PenLine, title: "Prompt editing", text: "User can edit manually or ask AI to rewrite, expand, format, or cite." },
           { icon: FileDown, title: "Export system", text: "Premium users can download PDF, DOCX, Markdown, and HTML." }
         ].map((item) => {

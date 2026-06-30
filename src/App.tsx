@@ -23,6 +23,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { SimilarityPage } from "./pages/SimilarityPage";
 import { ThesisBuilderPage } from "./pages/ThesisBuilderPage";
+import { planLabel, useAppState } from "./lib/appState";
 
 const nav = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard },
@@ -38,6 +39,7 @@ const nav = [
 export default function App() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const { user, plan, logout } = useAppState();
   const isMarketing = ["/", "/auth", "/pricing"].includes(location.pathname);
 
   if (isMarketing) {
@@ -53,8 +55,8 @@ export default function App() {
           </Link>
           <nav>
             <Link to="/pricing">Plans</Link>
-            <Link to="/auth">Login</Link>
-            <Link className="primary-action" to="/auth">Sign up</Link>
+            {user ? <Link to="/app">Workspace</Link> : <Link to="/auth">Login</Link>}
+            <Link className="primary-action" to={user ? "/app" : "/auth"}>{user ? planLabel(plan) : "Sign up"}</Link>
           </nav>
         </header>
         <Routes>
@@ -105,11 +107,9 @@ export default function App() {
           </button>
           <div>
             <p className="eyebrow">Logged in workspace</p>
-            <h1>Plan-based academic writing tools</h1>
+            <h1>{user ? `${user.name}'s ${planLabel(plan)} workspace` : "Plan-based academic writing tools"}</h1>
           </div>
-          <Link className="primary-action" to="/pricing">
-            Upgrade plan
-          </Link>
+          {user ? <button className="secondary-action" onClick={logout}>Logout</button> : <Link className="primary-action" to="/auth">Login</Link>}
         </header>
         <Routes>
           <Route path="/app" element={<Dashboard />} />
