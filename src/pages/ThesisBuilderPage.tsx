@@ -14,23 +14,37 @@ export function ThesisBuilderPage() {
   const [keywords, setKeywords] = useState("AI writing, thesis support, academic workflow, postgraduate students");
   const [outlineMode, setOutlineMode] = useState<"ai" | "user">("ai");
   const [userOutline, setUserOutline] = useState("1. Introduction\n2. Literature Review\n3. Methodology\n4. Findings\n5. Conclusion");
-  const [format, setFormat] = useState("APA style, 2500 words, formal academic tone");
+  const [outputType, setOutputType] = useState<"report" | "research">("research");
+  const [format, setFormat] = useState("Research paper style, 2500 words, formal academic tone");
   const [visualNotes, setVisualNotes] = useState("Add Figure 1 after methodology: flowchart of research process. Add Table 1 in literature review.");
+  const [customPrompt, setCustomPrompt] = useState("Write like a biomedical materials research article. Include abstract, keywords, introduction, materials and methods, results and discussion, conclusion, figures, tables, and references. Keep diagrams and tables clean.");
   const isPaid = isWritingPlan(plan);
 
   const generated = useMemo(() => {
     const keywordList = keywords.split(",").map((item) => item.trim()).filter(Boolean);
     const structure = outlineMode === "user"
       ? userOutline.split(/\r?\n/).filter(Boolean)
-      : ["Title Page", "Abstract", "Introduction", "Literature Review", "Methodology", "Findings", "Discussion", "Conclusion", "References"];
-    const outlines = [
-      "Abstract: research purpose, method, key findings, and contribution.",
-      "Introduction: background, problem statement, objectives, research questions.",
-      `Literature Review: compare prior studies in ${domain} and define key concepts.`,
-      "Methodology: research design, sample, instruments, limitations, ethics.",
-      `Visual placement: ${visualNotes}`,
-      `Formatting rules: ${format}`
-    ];
+      : outputType === "research"
+        ? ["Title and authors", "Article info", "Abstract", "Keywords", "Introduction", "Materials and Methods", "Results", "Discussion", "Conclusion", "References"]
+        : ["Title Page", "Abstract", "Introduction", "Literature Review", "Methodology", "Findings", "Discussion", "Conclusion", "References"];
+    const outlines = outputType === "research"
+      ? [
+          "Abstract: journal-style summary with aim, method, result direction, and conclusion.",
+          "Introduction: problem background, literature gap, and study objective.",
+          "Materials and Methods: study design, materials/data, characterization, evaluation workflow.",
+          "Results: structured findings with figure and table placement.",
+          "Discussion: compare with literature and explain mechanism/importance.",
+          `Custom prompt applied: ${customPrompt}`,
+          `Visual placement: ${visualNotes}`
+        ]
+      : [
+          "Abstract: research purpose, method, key findings, and contribution.",
+          "Introduction: background, problem statement, objectives, research questions.",
+          `Literature Review: compare prior studies in ${domain} and define key concepts.`,
+          "Methodology: research design, sample, instruments, limitations, ethics.",
+          `Visual placement: ${visualNotes}`,
+          `Formatting rules: ${format}`
+        ];
 
     const draft =
       `Draft chunk for "${title}"\n\nThis section discusses ${description.toLowerCase()} ` +
@@ -41,9 +55,9 @@ export function ThesisBuilderPage() {
       structure,
       outlines,
       draft,
-      fullPaper: buildFullPaper({ title, domain, description, keywords: keywordList, format, visualNotes, structure })
+      fullPaper: buildFullPaper({ title, domain, description, keywords: keywordList, format, visualNotes, customPrompt, outputType, structure })
     };
-  }, [description, domain, format, keywords, outlineMode, title, userOutline, visualNotes]);
+  }, [customPrompt, description, domain, format, keywords, outlineMode, outputType, title, userOutline, visualNotes]);
 
   function saveGeneratedPaper(openEditor: boolean) {
     localStorage.setItem("thesismate-last-paper-title", title);
@@ -85,6 +99,13 @@ export function ThesisBuilderPage() {
             <label>Domain<input value={domain} onChange={(event) => setDomain(event.target.value)} /></label>
             <label>Paper description<textarea value={description} onChange={(event) => setDescription(event.target.value)} /></label>
             <label>Keywords<input value={keywords} onChange={(event) => setKeywords(event.target.value)} /></label>
+            <label>
+              Output type
+              <select value={outputType} onChange={(event) => setOutputType(event.target.value as "report" | "research")}>
+                <option value="research">Research paper / journal article</option>
+                <option value="report">Dissertation / project report</option>
+              </select>
+            </label>
             <label>Required format and word count<input value={format} onChange={(event) => setFormat(event.target.value)} /></label>
             <label>
               Outline choice
@@ -97,6 +118,7 @@ export function ThesisBuilderPage() {
               <label>User outline<textarea value={userOutline} onChange={(event) => setUserOutline(event.target.value)} /></label>
             ) : null}
             <label>Figures / flowcharts / tables placement notes<textarea value={visualNotes} onChange={(event) => setVisualNotes(event.target.value)} /></label>
+            <label>Custom prompt / extra instructions<textarea value={customPrompt} onChange={(event) => setCustomPrompt(event.target.value)} placeholder="Hindi, English, or any language me likho: kaise paper banana hai, table/diagram kya chahiye, tone, format, etc." /></label>
             <label>Optional reference file<input type="file" /></label>
             <label>Optional sample paper<input type="file" /></label>
           </form>
@@ -164,10 +186,15 @@ function buildFullPaper(input: {
   keywords: string[];
   format: string;
   visualNotes: string;
+  customPrompt: string;
+  outputType: "report" | "research";
   structure: string[];
 }) {
   const targetWords = getTargetWords(input.format);
   const keywordLine = input.keywords.join(", ") || "topic-specific keywords";
+  if (input.outputType === "research" || /research paper|journal|article|manuscript/i.test(input.format + " " + input.customPrompt)) {
+    return buildResearchPaper(input, targetWords, keywordLine);
+  }
   const contents = [
     ["1.", "Introduction", "1-3"],
     ["2.", "Review of Literature", "4-8"],
@@ -191,6 +218,7 @@ function buildFullPaper(input: {
     "[Supervisor Name]",
     "[Department / School / University Name]",
     `Requested format: ${input.format}`,
+    `User prompt: ${input.customPrompt}`,
     "",
     "CERTIFICATE",
     `This is to certify that [Student Name] has completed the project titled "${input.title}" under the guidance of [Supervisor Name]. The work has been prepared for academic review in the field of ${input.domain}. The final submission should be verified by the institution, supervisor, and student before official use.`,
@@ -312,6 +340,97 @@ function buildFullPaper(input: {
     index += 1;
   }
 
+  return output.join("\n");
+}
+
+function buildResearchPaper(input: {
+  title: string;
+  domain: string;
+  description: string;
+  keywords: string[];
+  format: string;
+  visualNotes: string;
+  customPrompt: string;
+  structure: string[];
+}, targetWords: number, keywordLine: string) {
+  const sections = [
+    input.title,
+    "[Author Name]1, [Co-author Name]2, [Supervisor Name]1,*",
+    "1 Department / School / Institute Name",
+    "2 Collaborating Department / Institute Name",
+    "* Corresponding author: [email@example.com]",
+    "",
+    "ARTICLE INFO",
+    "Received: [Date] | Revised: [Date] | Accepted: [Date]",
+    `Keywords: ${keywordLine}`,
+    "",
+    "ABSTRACT",
+    `This manuscript presents a structured study on ${input.title} in the domain of ${input.domain}. ${input.description} The work is organized in a research-article format similar to biomedical and materials-science journal papers, with abstract, keywords, introduction, methodology, results, discussion, conclusion, figures, tables, and references. The draft follows the user's custom instruction: ${input.customPrompt}`,
+    "",
+    "1. INTRODUCTION",
+    `Research in ${input.domain} requires a clear connection between problem background, current limitations, and the proposed direction of study. ${input.title} is relevant because it connects ${keywordLine} with practical academic and scientific questions. The introduction should establish the need for the study, summarize current challenges, and identify the research gap without inventing unsupported claims.`,
+    `Recent studies in related biomedical/materials research papers usually begin with a broad problem statement, then narrow toward a specific material, method, therapy, or mechanism. In the final version, this section should include verified citations from the reference PDFs and additional peer-reviewed sources.`,
+    "",
+    "2. MATERIALS AND METHODS",
+    `This section should describe the study design, materials, synthesis or preparation method, characterization, experimental setup, and analysis workflow. If the user provides experimental values, they should be inserted here. If no real data is available, the report must keep method descriptions generic and mark data-dependent claims for verification.`,
+    "2.1 Study design",
+    `The study is designed to evaluate ${input.title} using a structured academic workflow. The research variables, sample conditions, treatment groups, and evaluation criteria should be defined based on real user data.`,
+    "2.2 Materials / Dataset / Sources",
+    "Materials, datasets, instruments, software, or literature sources should be listed with complete details. Add catalogue numbers, concentrations, sample size, inclusion criteria, or database search strings where applicable.",
+    "2.3 Characterization / Evaluation",
+    "Evaluation may include physical characterization, biological validation, statistical analysis, or literature-based comparison depending on the topic. The selected methods must match the user's domain and instructions.",
+    "",
+    "Figure 1: Schematic workflow of the study",
+    "Problem identification -> Material / method selection -> Experimental or literature workflow -> Analysis -> Results interpretation -> Validation",
+    "",
+    "3. RESULTS",
+    "The results section should present findings in a logical sequence. Since this demo cannot invent real experimental data, the table below marks where user-provided or verified results should be inserted.",
+    "",
+    "Table 1: Proposed result summary matrix",
+    "Parameter | Observation to report | Evidence required",
+    "Material / method property | Add measured value or qualitative result | Insert real data/source",
+    "Biological or functional response | Add experimental observation | Insert image/table/citation",
+    "Performance comparison | Compare with reference literature | Add verified reference",
+    "Limitations | Mention observed constraints | Add user notes",
+    "",
+    "Figure 2: User-requested diagram / flowchart placement",
+    input.visualNotes,
+    "",
+    "4. DISCUSSION",
+    `The discussion should interpret the expected findings in relation to ${input.title}. It should compare the result trend with literature, explain possible mechanisms, and describe why the findings matter for ${input.domain}. Claims about efficiency, antibacterial activity, photothermal response, wound healing, biocompatibility, or clinical translation must be supported by verified evidence.`,
+    "The discussion should also address limitations such as sample size, missing datasets, lack of in vivo validation, absence of long-term stability data, or incomplete citation support. This improves academic credibility and reduces the risk of unsupported conclusions.",
+    "",
+    "5. CONCLUSION",
+    `The study indicates that ${input.title} can be developed into a structured academic manuscript when real data, verified citations, and final human editing are added. The generated draft provides a complete research-paper framework with sections, figures, tables, and reference placeholders.`,
+    "",
+    "6. FUTURE WORK",
+    "Future work should include verified experiments, expanded references, statistical analysis, high-quality figures, and domain-specific validation based on the user's final research requirement.",
+    "",
+    "REFERENCES",
+    "1. [Add verified reference from uploaded PDF/source in journal format]",
+    "2. [Add verified reference from uploaded PDF/source in journal format]",
+    "3. [Add verified reference from uploaded PDF/source in journal format]",
+    "",
+    "AUTHOR NOTE",
+    "This generated manuscript is a formatted draft. It should be checked for similarity, AI-like patterns, citation accuracy, institutional formatting, and factual correctness before submission."
+  ];
+
+  const expansion = [
+    `The manuscript should stay focused on ${input.domain} and should avoid adding values that were not provided by the user.`,
+    "The user prompt should guide the writing style, diagram placement, table structure, and depth of explanation.",
+    "For a journal-style paper, every major technical claim should be paired with a source or a real observation.",
+    "Figures and tables should be placed near the first paragraph that discusses them, with clear captions and numbering."
+  ];
+
+  const output = [...sections];
+  let currentWords = output.join(" ").split(/\s+/).filter(Boolean).length;
+  let index = 0;
+  while (currentWords < targetWords) {
+    const paragraph = expansion[index % expansion.length];
+    output.splice(Math.max(output.length - 5, 0), 0, paragraph);
+    currentWords += paragraph.split(/\s+/).length;
+    index += 1;
+  }
   return output.join("\n");
 }
 
