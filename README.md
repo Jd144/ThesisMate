@@ -2,7 +2,7 @@
 
 ThesisMate is a professional AI-assisted academic writing workspace for thesis and report drafting. It is designed around step-by-step human review: users generate structure, then chapter outlines, then small editable draft chunks.
 
-## Features
+## Features 
 
 - Public home page explaining the product before login.
 - Login/sign-up flow before showing the user workspace.
