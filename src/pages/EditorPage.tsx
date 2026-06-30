@@ -8,7 +8,8 @@ const actions = ["Rewrite", "Expand", "Improve tone", "Add citations"];
 export function EditorPage() {
   const { recordExport } = useAppState();
   const [content, setContent] = useState(
-    "Chapter 1: Introduction\n\nThis study aims to examine how AI-assisted academic tools support thesis planning and revision.\n\n[Insert Table 1 here]\n[Insert Figure 2 here]"
+    () => localStorage.getItem("thesismate-last-paper") ||
+      "Chapter 1: Introduction\n\nThis study aims to examine how AI-assisted academic tools support thesis planning and revision.\n\n[Insert Table 1 here]\n[Insert Figure 2 here]"
   );
   const [prompt, setPrompt] = useState("");
   const [message, setMessage] = useState("Editor ready.");

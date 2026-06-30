@@ -761,6 +761,31 @@ textarea {
   padding: 28px;
 }
 
+.final-paper-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.quality-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.quality-grid span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fbfcfb;
+  color: #314155;
+  font-weight: 700;
+}
+
 .locked-feature {
   display: grid;
   place-items: center;
@@ -929,7 +954,8 @@ mark {
   .pricing-grid,
   .stat-grid,
   .project-grid,
-  .builder-form {
+  .builder-form,
+  .quality-grid {
     grid-template-columns: 1fr;
   }
 

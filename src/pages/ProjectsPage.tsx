@@ -3,27 +3,37 @@ import { SectionCard } from "../components/SectionCard";
 import { sampleProjects } from "../data/mockData";
 
 export function ProjectsPage() {
+  const latestTitle = localStorage.getItem("thesismate-last-paper-title");
+
   return (
     <div className="page-grid">
-      <SectionCard title="Projects" description="Create projects, save chapters, and restore previous versions.">
+      <SectionCard title="Projects" description="Generated papers are saved here. User can reopen and edit later.">
         <div className="button-row">
-          <button className="primary-action"><Plus size={16} /> New project</button>
-          <button className="secondary-action"><Save size={16} /> Save chapter</button>
+          <button className="primary-action" onClick={() => { window.location.href = "/app/builder"; }}><Plus size={16} /> New paper</button>
+          <button className="secondary-action" onClick={() => { window.location.href = "/app/editor"; }}><Save size={16} /> Open saved draft</button>
         </div>
         <div className="project-grid">
+          {latestTitle ? (
+            <article className="project-card">
+              <h3>{latestTitle}</h3>
+              <p>Generated paper - Ready for editing</p>
+              <span><Clock size={15} /> Saved just now</span>
+              <button className="secondary-action" onClick={() => { window.location.href = "/app/editor"; }}>Edit paper</button>
+            </article>
+          ) : null}
           {sampleProjects.map((project) => (
             <article className="project-card" key={project.title}>
               <h3>{project.title}</h3>
-              <p>{project.chapters} chapters · {project.status}</p>
+              <p>{project.chapters} chapters - {project.status}</p>
               <span><Clock size={15} /> Updated {project.updated}</span>
             </article>
           ))}
         </div>
       </SectionCard>
 
-      <SectionCard title="Version history" description="Each autosave can store a lightweight snapshot for rollback.">
+      <SectionCard title="Version history" description="Generated drafts and edits can be restored from here.">
         <div className="timeline">
-          {["Initial outline created", "Chapter 1 revised", "Similarity review completed", "Export draft generated"].map((item, index) => (
+          {["Input completed", "Outline approved", "Full paper generated", "Ready for editing"].map((item, index) => (
             <div className="timeline-item" key={item}>
               <strong>v{index + 1}</strong>
               <span>{item}</span>
