@@ -130,7 +130,8 @@ function createSimplePdf(title: string, content: string) {
   const lineHeight = 15;
   const maxChars = 88;
   const lines = wrapLines([title, "", ...content.split(/\r?\n/)], maxChars);
-  const linesPerPage = Math.floor((pageHeight - margin * 2) / lineHeight);
+  const footerSpace = 34;
+  const linesPerPage = Math.floor((pageHeight - margin * 2 - footerSpace) / lineHeight);
   const pages: string[][] = [];
   for (let index = 0; index < lines.length; index += linesPerPage) {
     pages.push(lines.slice(index, index + linesPerPage));
@@ -141,12 +142,12 @@ function createSimplePdf(title: string, content: string) {
   objects.push("<< /Type /Catalog /Pages 2 0 R >>");
   objects.push("");
 
-  pages.forEach((pageLines) => {
+  pages.forEach((pageLines, pageIndex) => {
     const contentObjectNumber = objects.length + 2;
     const pageObjectNumber = objects.length + 1;
     pageRefs.push(pageObjectNumber);
     objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Contents ${contentObjectNumber} 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> >>`);
-    const stream = buildPdfTextStream(pageLines, margin, pageHeight - margin, lineHeight);
+    const stream = buildPdfTextStream(pageLines, margin, pageHeight - margin, lineHeight, `Page ${pageIndex + 1} of ${pages.length}`, pageWidth, margin);
     objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
   });
 
@@ -188,12 +189,13 @@ function wrapLines(lines: string[], maxChars: number) {
   });
 }
 
-function buildPdfTextStream(lines: string[], x: number, yStart: number, lineHeight: number) {
+function buildPdfTextStream(lines: string[], x: number, yStart: number, lineHeight: number, footer: string, pageWidth: number, margin: number) {
   const escapedLines = lines.map((line, index) => {
     const y = yStart - index * lineHeight;
     return `BT /F1 11 Tf ${x} ${y} Td (${escapePdfText(line)}) Tj ET`;
   });
-  return escapedLines.join("\n");
+  const footerX = pageWidth - margin - 90;
+  return `${escapedLines.join("\n")}\nBT /F1 9 Tf ${footerX} 28 Td (${escapePdfText(footer)}) Tj ET`;
 }
 
 function escapePdfText(value: string) {
